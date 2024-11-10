@@ -71,7 +71,7 @@
             margin-right: 10px;
         }
 
-        input, button {
+        input, select, button {
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #ccc;
@@ -162,6 +162,31 @@
                 </div>
             </form>
 
+            <!-- Transfer Funds Form -->
+            <h2>Transfer Funds</h2>
+            <form action="{{ url_for('transfer_funds') }}" method="POST">
+                <label for="from_account">From Account:</label>
+                <select name="from_account" id="from_account" required>
+                    <option value="" disabled selected>Select Account</option>
+                    {% for account in accounts_used %}
+                        <option value="{{ account }}">{{ account }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="to_account">To Account:</label>
+                <select name="to_account" id="to_account" required>
+                    <option value="" disabled selected>Select Account</option>
+                    {% for account in accounts_used %}
+                        <option value="{{ account }}">{{ account }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="transfer_amount">Amount to Transfer:</label>
+                <input type="number" name="transfer_amount" id="transfer_amount" required>
+
+                <button type="submit">Transfer</button>
+            </form>
+
             <!-- Display Transactions -->
             <h2>Transaction History</h2>
             <table>
@@ -175,9 +200,9 @@
                 </thead>
                 <tbody>
                     {% for transaction in transactions %}
-                        <tr class="{{ 'income' if transaction['type'] == 'Income' else 'expense' }}">
+                        <tr>
                             <td>{{ transaction['account'] }}</td>
-                            <td>{{ transaction['amount'] }}</td>
+                            <td class="{{ transaction['type'] | lower }}">{{ transaction['amount'] }}</td>
                             <td>{{ transaction['reason'] }}</td>
                             <td>{{ transaction['type'] }}</td>
                         </tr>
@@ -185,12 +210,11 @@
                 </tbody>
             </table>
 
-            <!-- Delete Transaction Log Button -->
+            <!-- Delete All Transactions Button -->
             <form action="{{ url_for('delete_log') }}" method="POST">
-                <button type="submit" class="delete-btn">Delete Log</button>
+                <button class="delete-btn" type="submit">Delete All Transactions</button>
             </form>
         </div>
     </div>
 </body>
 </html>
-

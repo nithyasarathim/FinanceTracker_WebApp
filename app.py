@@ -11,6 +11,9 @@ mongo = PyMongo(app)
 def dashboard():
     transactions = mongo.db.transactions.find()  # Fetch all transactions from MongoDB
 
+    # Get distinct accounts used in transactions (used for dropdown)
+    accounts_used = mongo.db.transactions.distinct('account') 
+
     # Calculate account balances
     balances = {}
     for transaction in transactions:
@@ -25,8 +28,8 @@ def dashboard():
 
     # Fetch the data again for rendering
     transactions = mongo.db.transactions.find()
-    
-    return render_template('index.html', transactions=transactions, balances=balances)
+
+    return render_template('index.html', transactions=transactions, balances=balances, accounts_used=accounts_used)
 
 @app.route('/add_transaction', methods=['POST'])
 def add_transaction():
@@ -59,17 +62,17 @@ def transfer_funds():
     transfer_amount = float(request.form['transfer_amount'])
 
     # Update balances in database
-    db.accounts.update_one({"name": from_account}, {"$inc": {"balance": -transfer_amount}})
-    db.accounts.update_one({"name": to_account}, {"$inc": {"balance": transfer_amount}})
+    mongo.db.accounts.update_one({"name": from_account}, {"$inc": {"balance": -transfer_amount}})
+    mongo.db.accounts.update_one({"name": to_account}, {"$inc": {"balance": transfer_amount}})
 
-    # Log the transaction
-    db.transactions.insert_one({
+    # Log the transaction for both accounts
+    mongo.db.transactions.insert_one({
         "account": from_account,
         "amount": -transfer_amount,
         "reason": f"Transferred to {to_account}",
         "type": "Expense"
     })
-    db.transactions.insert_one({
+    mongo.db.transactions.insert_one({
         "account": to_account,
         "amount": transfer_amount,
         "reason": f"Transferred from {from_account}",
@@ -77,8 +80,7 @@ def transfer_funds():
     })
 
     return redirect(url_for('dashboard'))
-
-
-
+    
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
+
